@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">Meu Dinheiro</string>
+    <string name="due">Dívida</string>
+    <string name="you_have_no_dues">Você não tem dívidas</string>
+    <string name="add_due">Adicionar dívida</string>
+    <string name="settings">Configurações</string>
+    <string name="click_again_to_exit">Clique novamente para sair</string>
+    <string name="you_have_no_revenues">Você não tem receitas</string>
+    <string name="add_revenue">Adicionar receita</string>
+    <string name="main">Principal</string>
+    <string name="dues">Dívidas</string>
+    <string name="revenues">Receitas</string>
+    <string name="expand_layout">Expandir layout</string>
+    <string name="sign_out">Desconectar</string>
+    <string name="description">Descrição</string>
+    <string name="value">Valor</string>
+    <string name="paid">Pago</string>
+    <string name="due_has_been_paid">Esta dívida foi paga</string>
+    <string name="field_required">Campo obrigatório</string>
+    <string name="my_dues">Minhas dívidas</string>
+    <string name="my_revenues">Minhas receitas</string>
+    <string name="cancel">Cancelar</string>
+    <string name="update_due">Atualizar dívida</string>
+    <string name="delete">Deletar</string>
+    <string name="update">Atualizar</string>
+    <string name="add">Adicionar</string>
+    <string name="failed_to_add">Não foi possível adicionar</string>
+    <string name="failed_to_delete">Não foi possível deletar</string>
+    <string name="failed_to_update">Não foi possível atualizar</string>
+    <string name="delete_update_due">Deletar/atualizar dívida</string>
+    <string name="revenue_has_been_reclaimed">Esta receita foi obtida</string>
+    <string name="delete_update_revenue">Deletar/atualizar receita</string>
+    <string name="user_disconnected">Usuário desconectado</string>
+    <string name="logo">Logo</string>
+    <string name="welcome_to_my_money">Bem vindo ao Meu Dinheiro!</string>
+</resources>

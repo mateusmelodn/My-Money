@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.mateusmelodn.mymoney">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme"
+        android:name="androidx.multidex.MultiDexApplication">
+
+        <activity android:name=".activity.LoginActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".activity.SummaryActivity"/>
+
+        <activity
+            android:name=".activity.DueActivity"
+            android:theme="@style/AppThemeDarkActionBar"
+            android:label="@string/my_dues"
+            android:parentActivityName=".activity.SummaryActivity"/>
+
+        <activity
+            android:name=".activity.RevenueActivity"
+            android:theme="@style/AppThemeDarkActionBar"
+            android:label="@string/my_revenues"
+            android:parentActivityName=".activity.SummaryActivity"/>
+
+    </application>
+
+</manifest>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="card_view_margin">10dp</dimen>
+    <dimen name="activity_content_padding">10dp</dimen>
+    <dimen name="fab_margin_corner">10dp</dimen>
+    <dimen name="button_horizontal_margin">8dp</dimen>
+    <dimen name="title_bottom_margin">16dp</dimen>
+    <dimen name="icon_top_margin">24dp</dimen>
+    <dimen name="icon_bottom_margin">24dp</dimen>
+    <dimen name="button_corner_radius">8dp</dimen>
+    <dimen name="button_height">60dp</dimen>
+    <dimen name="dialog_title_text_size">16sp</dimen>
+    <dimen name="dialog_message_text_size">16sp</dimen>
+    <dimen name="input_corner_radius">8dp</dimen>
+    <dimen name="text_input_edit_text_height">50dp</dimen>
+    <dimen name="card_view_corner_radius">10dp</dimen>
+</resources>
