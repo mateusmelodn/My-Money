@@ -7,7 +7,7 @@ import com.mateusmelodn.mymoney.R
 import java.util.*
 
 data class Due(
-    var id: String = "",
+    var id: String = "", // id will be set at due creation
     var value: Double = 0.0,
     var description: String = "",
     @ServerTimestamp var dateTime: Date? = null,

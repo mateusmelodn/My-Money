@@ -6,6 +6,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 
+// Base activity for project
 open class BaseActivity : AppCompatActivity() {
     private var progressBar: ProgressBar? = null
 

@@ -33,4 +33,11 @@
     <string name="user_disconnected">Usuário desconectado</string>
     <string name="logo">Logo</string>
     <string name="welcome_to_my_money">Bem vindo ao Meu Dinheiro!</string>
+    <string name="you_have_x_dues">Você tem %s dívidas</string>
+    <string name="you_have_x_revenues">Você tem %s receitas</string>
+    <string name="you_owe_a_total_of">Você deve um total de R$ %s</string>
+    <string name="you_get_a_total_of">Você obtém um total de R$ %s</string>
+    <string name="pending">Pendente</string>
+    <string name="value_formatted">R$ %s</string>
+
 </resources>

@@ -7,7 +7,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
 import com.bumptech.glide.Glide
@@ -15,6 +14,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.material.navigation.NavigationView
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.DocumentSnapshot
@@ -32,10 +32,14 @@ import kotlinx.android.synthetic.main.nav_header.view.*
 import java.util.ArrayList
 
 class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
+    // Reference for FirebaseAuth
     private lateinit var auth: FirebaseAuth
+    // Reference for views
     private lateinit var binding: ActivitySummaryBinding
+    // Reference for GoogleSignInClient
     private lateinit var googleSignInClient: GoogleSignInClient
 
+    // Reference for due and revenue apadter
     private lateinit var dueAdapter: DueAdapter
     private lateinit var revenueAdapter: RevenueAdapter
 
@@ -51,12 +55,14 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         setContentView(binding.root)
         setProgressBar(binding.progressBar)
 
-        // Button listener
+        // Set cards listeners
+        // They'll be flipped when clicked
         binding.dueFrontCardView.setOnClickListener(this)
         binding.dueBackCardView.setOnClickListener(this)
         binding.revenueFrontCardView.setOnClickListener(this)
         binding.revenueBackCardView.setOnClickListener(this)
 
+        // Add menu drawer
         addDrawerLayout()
 
         // Configure Google Sign In
@@ -64,23 +70,22 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build()
-
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
         // Initialize Firebase Auth
         auth = FirebaseAuth.getInstance()
 
+        // Set due and revenue listeners for updates
         addDueAndRevenueListeners()
 
-        // Set up animation for flip card when user clicks buttons
+        // Set up animation for flip card when user clicks the cards
         setUpDueCardAnimation()
         setUpRevenueCardAnimation()
     }
 
     override fun onStart() {
         super.onStart()
-        val currentUser = auth.currentUser
-        updateUI(currentUser)
+        updateUI(auth.currentUser)
         dueAdapter.startListening()
         revenueAdapter.startListening()
     }
@@ -94,18 +99,21 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
     private fun updateUI(user: FirebaseUser?) {
         hideProgressBar()
         if (user != null) {
+            // Get nav view in order to find children views
             val root = binding.navView.getHeaderView(0)
 
+            // Update nav view UI
             root.userNameTextView.text = user.displayName
             root.userEmailTextView.text = user.email
             val userImageView = root.userImageView
 
-            // Background image
+            // Set user image view
             Glide.with(userImageView.context)
                 .load(user.photoUrl.toString())
                 .circleCrop()
                 .into(userImageView)
         } else {
+            // There's no user anymore, then logout
             launchLoginActivity()
         }
     }
@@ -117,8 +125,10 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
     }
 
     private fun addDrawerLayout() {
+        // Add toolbar
         setSupportActionBar(binding.toolbar)
 
+        // Set up navigation drawer menu
         val toggle = ActionBarDrawerToggle(this, binding.drawerLayout, binding.toolbar, 0, 0)
         binding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
@@ -127,18 +137,12 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            // Main
-            R.id.navDue -> {
-                openDueActivity()
-            }
-            R.id.navRevenue -> {
-                openRevenueActivity()
-            }
-            //Settings
-            R.id.navSignOut -> {
-                signOut()
-            }
+            R.id.navDue -> openDueActivity()
+            R.id.navRevenue -> openRevenueActivity()
+            R.id.navSignOut -> signOut()
         }
+
+        // This line is needed, otherwise menu won't close automatically
         binding.drawerLayout.closeDrawer(GravityCompat.START)
         return true
     }
@@ -154,6 +158,7 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
     }
 
     private fun signOut() {
+        // Show progress in order to indicate that there's an operation running
         showProgressBar()
 
         // Firebase sign out
@@ -166,20 +171,27 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
     }
 
     private var clickedTwice = false
+    // Override onBackPressed in order to perform a better use of the app
+    // when the user wants to close it
     override fun onBackPressed() {
+        // If menu is open, then close it first
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
             return
         }
 
+        // If user has clicked twice, then close the app
         if (clickedTwice) {
             super.onBackPressed()
             return
         }
 
         clickedTwice = true
-        Toast.makeText(this,
-            R.string.click_again_to_exit, Toast.LENGTH_SHORT).show()
+        Snackbar.make(findViewById(android.R.id.content), R.string.click_again_to_exit,
+                Snackbar.LENGTH_SHORT).show()
+
+        // Launch post delayed action
+        // Deprecated, should be replaced
         Handler().postDelayed({clickedTwice = false},2000)
     }
 
@@ -224,8 +236,8 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         }
 
         val totalDuesValueFormatted = "%.2f".format(totalDuesValue)
-        binding.totalDues.text = "Você tem ${snapshots.size} dívidas"
-        binding.totalDuesValue.text = "Você deve um total de R$ $totalDuesValueFormatted"
+        binding.totalDues.text = getString(R.string.you_have_x_dues, snapshots.size.toString())
+        binding.totalDuesValue.text = getString(R.string.you_owe_a_total_of, totalDuesValueFormatted)
     }
 
     private fun updateRevenuesUI(snapshots: ArrayList<DocumentSnapshot>) {
@@ -241,8 +253,8 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         }
 
         val totalRevenuesValueFormatted = "%.2f".format(totalRevenuesValue)
-        binding.totalRevenues.text = "Você tem ${snapshots.size} receitas"
-        binding.totalRevenuesValue.text = "Você obtém um total de R$ $totalRevenuesValueFormatted"
+        binding.totalRevenues.text = getString(R.string.you_have_x_revenues, snapshots.size.toString())
+        binding.totalRevenuesValue.text = getString(R.string.you_get_a_total_of, totalRevenuesValueFormatted)
     }
 
     private fun setUpDueCardAnimation() {

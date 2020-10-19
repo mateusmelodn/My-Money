@@ -26,41 +26,51 @@ import com.mateusmelodn.mymoney.model.Due
 import kotlinx.android.synthetic.main.dialog_add_delete_update_due.view.*
 import java.util.*
 
+// Due activity for due CRUD operations
 class DueActivity : BaseActivity(), View.OnClickListener, DueAdapter.OnDueSelectedListener {
+    // Reference for views
     private lateinit var binding: ActivityDueBinding
+    // Reference for Firestore
     private lateinit var firestore: FirebaseFirestore
+    // Reference for due apadter
     private lateinit var dueAdapter: DueAdapter
+
+    companion object {
+        private const val TAG = "DueActivity"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDueBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Button listener
+        // Set dueFab listener
         binding.addDueFab.setOnClickListener(this)
 
         // Initialize Firestore
         firestore = Firebase.firestore
 
-        // Get dues
+        // Query for getting dues
         val duesQuery = firestore
             .collection(DUE_COLLECTION)
             .orderBy(DUE_COLLECTION_ORDER_BY, Query.Direction.DESCENDING)
             .limit(LIMIT_ITEM_PER_QUERY)
 
-
-        // RecyclerView
+        // Create due adapter
         dueAdapter = object : DueAdapter(duesQuery, this@DueActivity) {
             override fun onDataChanged() {
                 if (itemCount == 0) {
+                    // User must know when there's no due for best practice
                     binding.dueInfoTextView.visibility = View.VISIBLE
                     binding.duesRecyclerView.visibility = View.GONE
                 } else {
+                    // Displey dues
                     binding.dueInfoTextView.visibility = View.GONE
                     binding.duesRecyclerView.visibility = View.VISIBLE
                 }
             }
         }
+        // Set adapter to duesRecyclerView
         binding.duesRecyclerView.layoutManager = LinearLayoutManager(this)
         binding.duesRecyclerView.adapter = dueAdapter
     }
@@ -100,7 +110,10 @@ class DueActivity : BaseActivity(), View.OnClickListener, DueAdapter.OnDueSelect
     }
 
     private fun addDue(due: Due): Task<Void> {
-        val dueRef = firestore.collection("dues").document()
+        // Get dues collection reference
+        val dueRef = firestore.collection(DUE_COLLECTION).document()
+
+        // Save id for future uses
         due.id = dueRef.id
 
         return firestore.runTransaction { transaction ->
@@ -131,6 +144,7 @@ class DueActivity : BaseActivity(), View.OnClickListener, DueAdapter.OnDueSelect
     }
 
     private fun deleteDue(due: Due): Task<Void> {
+        // Get due document reference based on id which was previously saved
         val dueRef = firestore.collection(DUE_COLLECTION).document(due.id)
 
         return firestore.runTransaction { transaction ->
@@ -161,6 +175,7 @@ class DueActivity : BaseActivity(), View.OnClickListener, DueAdapter.OnDueSelect
     }
 
     private fun updateDue(due: Due): Task<Void> {
+        // Get due document reference based on id which was previously saved
         val dueRef = firestore.collection(DUE_COLLECTION).document(due.id)
 
         return firestore.runTransaction { transaction ->
@@ -181,12 +196,11 @@ class DueActivity : BaseActivity(), View.OnClickListener, DueAdapter.OnDueSelect
         }
     }
 
-    companion object {
-        private const val TAG = "DueActivity"
-    }
-
     var addDeleteUpdateDueDialog: AlertDialog? = null
     private fun showAddDeleteUpdateDueDialog(due: Due?) {
+        // When due is null, it means that is an addition operation
+        // Otherwise is an update or deletion
+
         if (addDeleteUpdateDueDialog == null) {
             val builder: AlertDialog.Builder = AlertDialog.Builder(this)
             val root: View = layoutInflater.inflate(R.layout.dialog_add_delete_update_due, null)
@@ -194,10 +208,12 @@ class DueActivity : BaseActivity(), View.OnClickListener, DueAdapter.OnDueSelect
 
             addDeleteUpdateDueDialog = builder.create()
             addDeleteUpdateDueDialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+            // Dialog won't be cancelable at all
             addDeleteUpdateDueDialog?.setCancelable(false)
             addDeleteUpdateDueDialog?.setCanceledOnTouchOutside(false)
 
             if (due != null) {
+                // due is not null, it's an update or deletion!
                 root.cancelButton.visibility = View.GONE
                 root.deleteButton.visibility = View.VISIBLE
                 root.addDueButton.visibility = View.GONE
@@ -219,25 +235,28 @@ class DueActivity : BaseActivity(), View.OnClickListener, DueAdapter.OnDueSelect
             }
 
             root.addDueButton.setOnClickListener {
+                // Verify if fields are valid
                 if (Due.areDueFieldsValid(root.descriptionTextInputField, root.valueTextInputField, this)) {
-                    dismissAddDeleteUpdateDueDialog()
-
                     val description = root.descriptionTextInputField.text.toString()
                     val value = root.valueTextInputField.text.toString()
                     val paid = root.paidCheckBox.isChecked
                     val newDue = Due("", value.toDouble(), description, Date(), paid)
                     onAddDueClick(newDue)
+
+                    // Dismiss the current dialog
+                    dismissAddDeleteUpdateDueDialog()
                 }
             }
 
             root.updateDueButton.setOnClickListener {
                 if (Due.areDueFieldsValid(root.descriptionTextInputField, root.valueTextInputField, this)) {
-                    dismissAddDeleteUpdateDueDialog()
-
                     due!!.description = root.descriptionTextInputField.text.toString()
                     due.value = root.valueTextInputField.text.toString().toDouble()
                     due.paid = root.paidCheckBox.isChecked
                     onUpdateDueClick(due)
+
+                    // Dismiss the current dialog
+                    dismissAddDeleteUpdateDueDialog()
                 }
             }
             addDeleteUpdateDueDialog?.show()

@@ -16,8 +16,9 @@ abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var query:
         RecyclerView.Adapter<VH>(),
     EventListener<QuerySnapshot> {
 
+    // Reference for ListenerRegistration
     private var registration: ListenerRegistration? = null
-
+    // Reference for snapshots
     val snapshots = ArrayList<DocumentSnapshot>()
 
     override fun onEvent(documentSnapshots: QuerySnapshot?, e: FirebaseFirestoreException?) {
@@ -109,7 +110,6 @@ abstract class FirestoreAdapter<VH : RecyclerView.ViewHolder>(private var query:
     }
 
     companion object {
-
         private const val TAG = "FirestoreAdapter"
     }
 }

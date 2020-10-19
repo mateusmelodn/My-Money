@@ -15,10 +15,19 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.mateusmelodn.mymoney.R
 import com.mateusmelodn.mymoney.databinding.ActivityLoginBinding
 
+// Login activity for authentication
 class LoginActivity : BaseActivity(), View.OnClickListener {
+    // Reference for FirebaseAuth
     private lateinit var auth: FirebaseAuth
+    // Reference for views
     private lateinit var binding: ActivityLoginBinding
+    // Reference for GoogleSignInClient
     private lateinit var googleSignInClient: GoogleSignInClient
+
+    companion object {
+        private const val TAG = "LoginActivity"
+        private const val RC_SIGN_IN = 9001
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,7 +35,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
         setContentView(binding.root)
         setProgressBar(binding.progressBar)
 
-        // Button listeners
+        // Set signInButton listener
         binding.signInButton.setOnClickListener(this)
 
         // Configure Google Sign In
@@ -34,7 +43,6 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build()
-
         googleSignInClient = GoogleSignIn.getClient(this, gso)
 
         // Initialize Firebase Auth
@@ -43,9 +51,7 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
 
     override fun onStart() {
         super.onStart()
-        // Check if user is signed in (non-null) and update UI accordingly.
-        val currentUser = auth.currentUser
-        updateUI(currentUser)
+        updateUI(auth.currentUser)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -68,15 +74,16 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
     }
 
     private fun firebaseAuthWithGoogle(idToken: String) {
+        // Show progress in order to indicate that there's an operation running
         showProgressBar()
+
         val credential = GoogleAuthProvider.getCredential(idToken, null)
         auth.signInWithCredential(credential)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
                         // Sign in success, update UI with the signed-in user's information
                         Log.d(TAG, "signInWithCredential:success")
-                        val user = auth.currentUser
-                        updateUI(user)
+                        updateUI(auth.currentUser)
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w(TAG, "signInWithCredential:failure", task.exception)
@@ -94,18 +101,20 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
-
     private fun updateUI(user: FirebaseUser?) {
+        // Hide progress in order to indicate that there's no operation running
         hideProgressBar()
+
+        // Check if user is signed in (non-null) and update UI accordingly.
         if (user != null) {
-            launchSummaryActivity()
+            launchSummaryActivityAndFinishCurrent()
         } else {
             Snackbar.make(findViewById(android.R.id.content), R.string.user_disconnected,
                 Snackbar.LENGTH_SHORT).show()
         }
     }
 
-    private fun launchSummaryActivity() {
+    private fun launchSummaryActivityAndFinishCurrent() {
         val intent = Intent(this, SummaryActivity::class.java)
         startActivity(intent)
         this.finish()
@@ -115,10 +124,5 @@ class LoginActivity : BaseActivity(), View.OnClickListener {
         when (v.id) {
             R.id.signInButton -> signIn()
         }
-    }
-
-    companion object {
-        private const val TAG = "GoogleActivity"
-        private const val RC_SIGN_IN = 9001
     }
 }
