@@ -253,7 +253,7 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         val duesTemp: ArrayList<Due> = ArrayList()
         totalDuesValue = 0F
 
-        for (snapshot in snapshots) {
+        for (snapshot in snapshots.reversed()) {
             if (snapshot.exists()) {
                 val due: Due? = snapshot.toObject(Due::class.java)
                 due?.let { duesTemp.add(it) }
@@ -277,7 +277,7 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         val revenuesTemp: ArrayList<Revenue> = ArrayList()
         totalRevenuesValue = 0F
 
-        for (snapshot in snapshots) {
+        for (snapshot in snapshots.reversed()) {
             if (snapshot.exists()) {
                 val revenue: Revenue? = snapshot.toObject(Revenue::class.java)
                 revenue?.let { revenuesTemp.add(it) }
