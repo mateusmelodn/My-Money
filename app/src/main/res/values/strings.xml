@@ -40,5 +40,6 @@
     <string name="pending">Pendente</string>
     <string name="value_formatted">R$ %s</string>
     <string name="there_is_no_data_available">Não há dados disponíveis</string>
+    <string name="summary">Resumo</string>
 
 </resources>

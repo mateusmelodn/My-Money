@@ -4,7 +4,6 @@ import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.view.MenuItem
@@ -12,10 +11,13 @@ import android.view.View
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
 import com.bumptech.glide.Glide
+import com.github.mikephil.charting.animation.Easing
+import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.components.Legend
+import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.PercentFormatter
+import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -35,8 +37,6 @@ import com.mateusmelodn.mymoney.databinding.ActivitySummaryBinding
 import com.mateusmelodn.mymoney.model.Due
 import com.mateusmelodn.mymoney.model.Revenue
 import kotlinx.android.synthetic.main.nav_header.view.*
-import java.util.*
-import kotlin.collections.ArrayList
 
 class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
     // Reference for FirebaseAuth
@@ -49,6 +49,10 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
     // Reference for due and revenue apadter
     private lateinit var dueAdapter: DueAdapter
     private lateinit var revenueAdapter: RevenueAdapter
+
+    // Uses in summary chart
+    private var totalDuesValue = 0F
+    private var totalRevenuesValue = 0F
 
     // For animation use
     private lateinit var mFrontAnim: AnimatorSet
@@ -96,6 +100,10 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         // Set no revenues data text first of all
         binding.revenuesLineChart.setNoDataText(getString(R.string.there_is_no_data_available))
         binding.revenuesLineChart.setNoDataTextColor(R.color.colorAccent)
+
+        // Set no summary data text first of all
+        binding.summaryPieChart.setNoDataText(getString(R.string.there_is_no_data_available))
+        binding.summaryPieChart.setNoDataTextColor(R.color.colorAccent)
     }
 
     override fun onStart() {
@@ -202,8 +210,10 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         }
 
         clickedTwice = true
-        Snackbar.make(findViewById(android.R.id.content), R.string.click_again_to_exit,
-                Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(
+            findViewById(android.R.id.content), R.string.click_again_to_exit,
+            Snackbar.LENGTH_SHORT
+        ).show()
 
         // Launch post delayed action
         // Deprecated, should be replaced
@@ -240,44 +250,54 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
     }
 
     private fun updateDuesUI(snapshots: ArrayList<DocumentSnapshot>) {
-        val dues: ArrayList<Due> = ArrayList()
-        var totalDuesValue = 0.0
+        val duesTemp: ArrayList<Due> = ArrayList()
+        totalDuesValue = 0F
+
         for (snapshot in snapshots) {
             if (snapshot.exists()) {
                 val due: Due? = snapshot.toObject(Due::class.java)
-                due?.let { dues.add(it) }
+                due?.let { duesTemp.add(it) }
                 due?.value?.let {
-                    totalDuesValue += it
+                    totalDuesValue += it.toFloat()
                 }
             }
         }
 
         val totalDuesValueFormatted = "%.2f".format(totalDuesValue)
         binding.totalDues.text = getString(R.string.you_have_x_dues, snapshots.size.toString())
-        binding.totalDuesValue.text = getString(R.string.you_owe_a_total_of, totalDuesValueFormatted)
+        binding.totalDuesValue.text = getString(
+            R.string.you_owe_a_total_of,
+            totalDuesValueFormatted
+        )
 
-        setDuesChart(dues)
+        setDuesChart(duesTemp)
     }
 
     private fun updateRevenuesUI(snapshots: ArrayList<DocumentSnapshot>) {
-        val revenues: ArrayList<Revenue> = ArrayList()
-        var totalRevenuesValue = 0.0
+        val revenuesTemp: ArrayList<Revenue> = ArrayList()
+        totalRevenuesValue = 0F
 
         for (snapshot in snapshots) {
             if (snapshot.exists()) {
                 val revenue: Revenue? = snapshot.toObject(Revenue::class.java)
-                revenue?.let { revenues.add(it) }
+                revenue?.let { revenuesTemp.add(it) }
                 revenue?.value?.let {
-                    totalRevenuesValue += it
+                    totalRevenuesValue += it.toFloat()
                 }
             }
         }
 
         val totalRevenuesValueFormatted = "%.2f".format(totalRevenuesValue)
-        binding.totalRevenues.text = getString(R.string.you_have_x_revenues, snapshots.size.toString())
-        binding.totalRevenuesValue.text = getString(R.string.you_get_a_total_of, totalRevenuesValueFormatted)
+        binding.totalRevenues.text = getString(
+            R.string.you_have_x_revenues,
+            snapshots.size.toString()
+        )
+        binding.totalRevenuesValue.text = getString(
+            R.string.you_get_a_total_of,
+            totalRevenuesValueFormatted
+        )
 
-        setRevenuesChart(revenues)
+        setRevenuesChart(revenuesTemp)
     }
 
     private fun setUpDueCardAnimation() {
@@ -288,12 +308,12 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
 
         // Set animations
         mFrontAnim = AnimatorInflater.loadAnimator(
-                applicationContext,
-                R.animator.front_due_card_view
+            applicationContext,
+            R.animator.front_due_card_view
         ) as AnimatorSet
         mBackAnim = AnimatorInflater.loadAnimator(
-                applicationContext,
-                R.animator.back_due_card_view
+            applicationContext,
+            R.animator.back_due_card_view
         ) as AnimatorSet
     }
 
@@ -325,12 +345,12 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
 
         // Set animations
         mFrontAnim = AnimatorInflater.loadAnimator(
-                applicationContext,
-                R.animator.front_revenue_card_view
+            applicationContext,
+            R.animator.front_revenue_card_view
         ) as AnimatorSet
         mBackAnim = AnimatorInflater.loadAnimator(
-                applicationContext,
-                R.animator.back_revenue_card_view
+            applicationContext,
+            R.animator.back_revenue_card_view
         ) as AnimatorSet
     }
 
@@ -367,11 +387,16 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
     private fun setDuesChart(dues: ArrayList<Due>) {
         if (dues.size > 0) {
             binding.duesLineChart.data = generateDuesDataLine(dues)
-            binding.duesLineChart.description = Description().apply { text = "" }
+            binding.duesLineChart.description = Description().apply { text = "R$" }
+            binding.duesLineChart.axisLeft.setDrawLabels(false)
+            binding.duesLineChart.xAxis.setDrawLabels(false)
         } else {
             binding.duesLineChart.setNoDataText(getString(R.string.there_is_no_data_available))
             binding.duesLineChart.setNoDataTextColor(R.color.colorAccent)
         }
+
+        // When dues or revenues are updated, summary chart needs to be too
+        setSummaryChart()
     }
 
     // Generate due chart data
@@ -394,11 +419,16 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
     private fun setRevenuesChart(revenues: ArrayList<Revenue>) {
         if (revenues.size > 0) {
             binding.revenuesLineChart.data = generateRevenuesDataLine(revenues)
-            binding.revenuesLineChart.description = Description().apply { text = "" }
+            binding.revenuesLineChart.description = Description().apply { text = "R$" }
+            binding.revenuesLineChart.axisLeft.setDrawLabels(false)
+            binding.revenuesLineChart.xAxis.setDrawLabels(false)
         } else {
             binding.revenuesLineChart.setNoDataText(getString(R.string.there_is_no_data_available))
             binding.revenuesLineChart.setNoDataTextColor(R.color.colorAccent)
         }
+
+        // When dues or revenues are updated, summary chart needs to be too
+        setSummaryChart()
     }
 
     // Generate revenue chart data
@@ -415,5 +445,59 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         lineDataSet.setCircleColor(R.color.green)
         lineDataSet.setDrawValues(true)
         return LineData(lineDataSet)
+    }
+
+    // Add summary chart
+    private fun setSummaryChart() {
+        val chart: PieChart = findViewById(R.id.summaryPieChart)
+        chart.setBackgroundColor(Color.WHITE)
+        chart.setUsePercentValues(true)
+        chart.description.isEnabled = false
+        chart.isDrawHoleEnabled = true
+        chart.setHoleColor(Color.WHITE)
+        chart.setTransparentCircleColor(Color.WHITE)
+        chart.setTransparentCircleAlpha(110)
+        chart.holeRadius = 58f
+        chart.transparentCircleRadius = 61f
+        chart.setDrawCenterText(true)
+        chart.isRotationEnabled = false
+        chart.isHighlightPerTapEnabled = true
+        chart.rotationAngle = 180f
+        chart.setCenterTextOffset(0f, -20f)
+
+        val data = generateSummaryPieData()
+        chart.setData(data)
+        chart.invalidate()
+
+        chart.animateY(1400, Easing.EaseInOutQuad)
+
+        val legend = chart.getLegend()
+        legend.verticalAlignment = Legend.LegendVerticalAlignment.TOP
+        legend.horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
+        legend.orientation = Legend.LegendOrientation.HORIZONTAL
+        legend.setDrawInside(false)
+        legend.xEntrySpace = 7f
+        legend.yEntrySpace = 0f
+        legend.yOffset = 0f
+
+        chart.setEntryLabelColor(Color.WHITE)
+        chart.setEntryLabelTextSize(12f)
+    }
+
+    // Generate summary chart data
+    private fun generateSummaryPieData(): PieData {
+        val values = java.util.ArrayList<PieEntry>()
+        values.add(PieEntry(totalRevenuesValue, getString(R.string.revenues)))
+        values.add(PieEntry(totalDuesValue, getString(R.string.dues)))
+
+        val dataSet = PieDataSet(values, "")
+        dataSet.sliceSpace = 3f
+        dataSet.selectionShift = 5f
+        dataSet.setColors(*ColorTemplate.MATERIAL_COLORS)
+        val data = PieData(dataSet)
+        data.setValueFormatter(PercentFormatter())
+        data.setValueTextSize(11f)
+        data.setValueTextColor(Color.WHITE)
+        return data
     }
 }
