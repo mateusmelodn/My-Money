@@ -385,6 +385,9 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
 
     // Add due chart
     private fun setDuesChart(dues: ArrayList<Due>) {
+        // Invalidate data chart
+        binding.duesLineChart.invalidate()
+
         if (dues.size > 0) {
             binding.duesLineChart.data = generateDuesDataLine(dues)
             binding.duesLineChart.description = Description().apply { text = "R$" }
@@ -394,6 +397,9 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
             binding.duesLineChart.setNoDataText(getString(R.string.there_is_no_data_available))
             binding.duesLineChart.setNoDataTextColor(R.color.colorAccent)
         }
+
+        // Refresh data chart
+        binding.duesLineChart.notifyDataSetChanged()
 
         // When dues or revenues are updated, summary chart needs to be too
         setSummaryChart()
@@ -417,6 +423,9 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
 
     // Add revenue chart
     private fun setRevenuesChart(revenues: ArrayList<Revenue>) {
+        // Invalidate data chart
+        binding.revenuesLineChart.invalidate()
+
         if (revenues.size > 0) {
             binding.revenuesLineChart.data = generateRevenuesDataLine(revenues)
             binding.revenuesLineChart.description = Description().apply { text = "R$" }
@@ -426,6 +435,9 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
             binding.revenuesLineChart.setNoDataText(getString(R.string.there_is_no_data_available))
             binding.revenuesLineChart.setNoDataTextColor(R.color.colorAccent)
         }
+
+        // Refresh data chart
+        binding.revenuesLineChart.notifyDataSetChanged()
 
         // When dues or revenues are updated, summary chart needs to be too
         setSummaryChart()
@@ -449,29 +461,31 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
 
     // Add summary chart
     private fun setSummaryChart() {
-        val chart: PieChart = findViewById(R.id.summaryPieChart)
-        chart.setBackgroundColor(Color.WHITE)
-        chart.setUsePercentValues(true)
-        chart.description.isEnabled = false
-        chart.isDrawHoleEnabled = true
-        chart.setHoleColor(Color.WHITE)
-        chart.setTransparentCircleColor(Color.WHITE)
-        chart.setTransparentCircleAlpha(110)
-        chart.holeRadius = 58f
-        chart.transparentCircleRadius = 61f
-        chart.setDrawCenterText(true)
-        chart.isRotationEnabled = false
-        chart.isHighlightPerTapEnabled = true
-        chart.rotationAngle = 180f
-        chart.setCenterTextOffset(0f, -20f)
+        // Invalidate data chart
+        binding.summaryPieChart.invalidate()
+
+        binding.summaryPieChart.setBackgroundColor(Color.WHITE)
+        binding.summaryPieChart.setUsePercentValues(true)
+        binding.summaryPieChart.description.isEnabled = false
+        binding.summaryPieChart.isDrawHoleEnabled = true
+        binding.summaryPieChart.setHoleColor(Color.WHITE)
+        binding.summaryPieChart.setTransparentCircleColor(Color.WHITE)
+        binding.summaryPieChart.setTransparentCircleAlpha(110)
+        binding.summaryPieChart.holeRadius = 58f
+        binding.summaryPieChart.transparentCircleRadius = 61f
+        binding.summaryPieChart.setDrawCenterText(true)
+        binding.summaryPieChart.isRotationEnabled = false
+        binding.summaryPieChart.isHighlightPerTapEnabled = true
+        binding.summaryPieChart.rotationAngle = 180f
+        binding.summaryPieChart.setCenterTextOffset(0f, -20f)
 
         val data = generateSummaryPieData()
-        chart.setData(data)
-        chart.invalidate()
+        binding.summaryPieChart.setData(data)
+        binding.summaryPieChart.invalidate()
 
-        chart.animateY(1400, Easing.EaseInOutQuad)
+        binding.summaryPieChart.animateY(1400, Easing.EaseInOutQuad)
 
-        val legend = chart.getLegend()
+        val legend = binding.summaryPieChart.legend
         legend.verticalAlignment = Legend.LegendVerticalAlignment.TOP
         legend.horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
         legend.orientation = Legend.LegendOrientation.HORIZONTAL
@@ -480,8 +494,11 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         legend.yEntrySpace = 0f
         legend.yOffset = 0f
 
-        chart.setEntryLabelColor(Color.WHITE)
-        chart.setEntryLabelTextSize(12f)
+        binding.summaryPieChart.setEntryLabelColor(Color.WHITE)
+        binding.summaryPieChart.setEntryLabelTextSize(12f)
+
+        // Refresh data chart
+        binding.summaryPieChart.notifyDataSetChanged()
     }
 
     // Generate summary chart data
