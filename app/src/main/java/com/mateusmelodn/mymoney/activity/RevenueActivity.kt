@@ -39,6 +39,10 @@ class RevenueActivity : BaseActivity(), View.OnClickListener, RevenueAdapter.OnR
         private const val TAG = "RevenueActivity"
     }
 
+    override fun onBackPressed() {
+        onSupportNavigateUp()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRevenueBinding.inflate(layoutInflater)

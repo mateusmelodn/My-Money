@@ -11,4 +11,5 @@
     <color name="dialog_title">#6d7278</color>
     <color name="dialog_message">#6d7278</color>
     <color name="red">#F44336</color>
+    <color name="green">#4BB543</color>
 </resources>

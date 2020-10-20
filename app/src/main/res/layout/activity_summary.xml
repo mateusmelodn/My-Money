@@ -84,13 +84,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <TextView
-                        android:text="Gráfico dívidas"
-                        android:textSize="30sp"
-                        android:fontFamily="@font/circularstdbold"
-                        android:textColor="@color/greyish_brown"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                    <com.github.mikephil.charting.charts.LineChart
+                        android:id="@+id/duesLineChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
 
                 </LinearLayout>
 
@@ -110,7 +107,7 @@
 
                     <TextView
                         android:id="@+id/totalDues"
-                        android:textSize="20sp"
+                        android:textSize="16sp"
                         android:fontFamily="@font/circularstdbold"
                         android:textColor="@color/greyish_brown"
                         android:layout_width="wrap_content"
@@ -118,7 +115,7 @@
 
                     <TextView
                         android:id="@+id/totalDuesValue"
-                        android:textSize="20sp"
+                        android:textSize="16sp"
                         android:fontFamily="@font/circularstdbold"
                         android:textColor="@color/greyish_brown"
                         android:layout_marginTop="10dp"
@@ -148,13 +145,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-                    <TextView
-                        android:text="Gráfico receitas"
-                        android:textSize="30sp"
-                        android:fontFamily="@font/circularstdbold"
-                        android:textColor="@color/greyish_brown"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                    <com.github.mikephil.charting.charts.LineChart
+                        android:id="@+id/revenuesLineChart"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
 
                 </LinearLayout>
 
@@ -174,7 +168,7 @@
 
                     <TextView
                         android:id="@+id/totalRevenues"
-                        android:textSize="20sp"
+                        android:textSize="16sp"
                         android:fontFamily="@font/circularstdbold"
                         android:textColor="@color/greyish_brown"
                         android:layout_width="wrap_content"
@@ -182,7 +176,7 @@
 
                     <TextView
                         android:id="@+id/totalRevenuesValue"
-                        android:textSize="20sp"
+                        android:textSize="16sp"
                         android:fontFamily="@font/circularstdbold"
                         android:textColor="@color/greyish_brown"
                         android:layout_marginTop="10dp"

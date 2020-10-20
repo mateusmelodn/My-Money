@@ -39,5 +39,6 @@
     <string name="you_get_a_total_of">Você obtém um total de R$ %s</string>
     <string name="pending">Pendente</string>
     <string name="value_formatted">R$ %s</string>
+    <string name="there_is_no_data_available">Não há dados disponíveis</string>
 
 </resources>

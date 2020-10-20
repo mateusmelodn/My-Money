@@ -39,6 +39,10 @@ class DueActivity : BaseActivity(), View.OnClickListener, DueAdapter.OnDueSelect
         private const val TAG = "DueActivity"
     }
 
+    override fun onBackPressed() {
+        onSupportNavigateUp()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDueBinding.inflate(layoutInflater)

@@ -3,6 +3,8 @@ package com.mateusmelodn.mymoney.activity
 import android.animation.AnimatorInflater
 import android.animation.AnimatorSet
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.view.MenuItem
@@ -10,6 +12,10 @@ import android.view.View
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
 import com.bumptech.glide.Glide
+import com.github.mikephil.charting.components.Description
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -29,7 +35,8 @@ import com.mateusmelodn.mymoney.databinding.ActivitySummaryBinding
 import com.mateusmelodn.mymoney.model.Due
 import com.mateusmelodn.mymoney.model.Revenue
 import kotlinx.android.synthetic.main.nav_header.view.*
-import java.util.ArrayList
+import java.util.*
+import kotlin.collections.ArrayList
 
 class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
     // Reference for FirebaseAuth
@@ -81,6 +88,14 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         // Set up animation for flip card when user clicks the cards
         setUpDueCardAnimation()
         setUpRevenueCardAnimation()
+
+        // Set no dues data text first of all
+        binding.duesLineChart.setNoDataText(getString(R.string.there_is_no_data_available))
+        binding.duesLineChart.setNoDataTextColor(R.color.colorAccent)
+
+        // Set no revenues data text first of all
+        binding.revenuesLineChart.setNoDataText(getString(R.string.there_is_no_data_available))
+        binding.revenuesLineChart.setNoDataTextColor(R.color.colorAccent)
     }
 
     override fun onStart() {
@@ -192,7 +207,7 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
 
         // Launch post delayed action
         // Deprecated, should be replaced
-        Handler().postDelayed({clickedTwice = false},2000)
+        Handler().postDelayed({ clickedTwice = false }, 2000)
     }
 
     private fun addDueAndRevenueListeners() {
@@ -225,10 +240,12 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
     }
 
     private fun updateDuesUI(snapshots: ArrayList<DocumentSnapshot>) {
+        val dues: ArrayList<Due> = ArrayList()
         var totalDuesValue = 0.0
         for (snapshot in snapshots) {
             if (snapshot.exists()) {
                 val due: Due? = snapshot.toObject(Due::class.java)
+                due?.let { dues.add(it) }
                 due?.value?.let {
                     totalDuesValue += it
                 }
@@ -238,14 +255,18 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         val totalDuesValueFormatted = "%.2f".format(totalDuesValue)
         binding.totalDues.text = getString(R.string.you_have_x_dues, snapshots.size.toString())
         binding.totalDuesValue.text = getString(R.string.you_owe_a_total_of, totalDuesValueFormatted)
+
+        setDuesChart(dues)
     }
 
     private fun updateRevenuesUI(snapshots: ArrayList<DocumentSnapshot>) {
+        val revenues: ArrayList<Revenue> = ArrayList()
         var totalRevenuesValue = 0.0
 
         for (snapshot in snapshots) {
             if (snapshot.exists()) {
                 val revenue: Revenue? = snapshot.toObject(Revenue::class.java)
+                revenue?.let { revenues.add(it) }
                 revenue?.value?.let {
                     totalRevenuesValue += it
                 }
@@ -255,6 +276,8 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
         val totalRevenuesValueFormatted = "%.2f".format(totalRevenuesValue)
         binding.totalRevenues.text = getString(R.string.you_have_x_revenues, snapshots.size.toString())
         binding.totalRevenuesValue.text = getString(R.string.you_get_a_total_of, totalRevenuesValueFormatted)
+
+        setRevenuesChart(revenues)
     }
 
     private fun setUpDueCardAnimation() {
@@ -265,12 +288,12 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
 
         // Set animations
         mFrontAnim = AnimatorInflater.loadAnimator(
-            applicationContext,
-            R.animator.front_due_card_view
+                applicationContext,
+                R.animator.front_due_card_view
         ) as AnimatorSet
         mBackAnim = AnimatorInflater.loadAnimator(
-            applicationContext,
-            R.animator.back_due_card_view
+                applicationContext,
+                R.animator.back_due_card_view
         ) as AnimatorSet
     }
 
@@ -302,12 +325,12 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
 
         // Set animations
         mFrontAnim = AnimatorInflater.loadAnimator(
-            applicationContext,
-            R.animator.front_revenue_card_view
+                applicationContext,
+                R.animator.front_revenue_card_view
         ) as AnimatorSet
         mBackAnim = AnimatorInflater.loadAnimator(
-            applicationContext,
-            R.animator.back_revenue_card_view
+                applicationContext,
+                R.animator.back_revenue_card_view
         ) as AnimatorSet
     }
 
@@ -338,5 +361,59 @@ class SummaryActivity : BaseActivity(), View.OnClickListener, NavigationView.OnN
             R.id.revenueFrontCardView -> flipRevenueCard()
             R.id.revenueBackCardView -> flipRevenueCard()
         }
+    }
+
+    // Add due chart
+    private fun setDuesChart(dues: ArrayList<Due>) {
+        if (dues.size > 0) {
+            binding.duesLineChart.data = generateDuesDataLine(dues)
+            binding.duesLineChart.description = Description().apply { text = "" }
+        } else {
+            binding.duesLineChart.setNoDataText(getString(R.string.there_is_no_data_available))
+            binding.duesLineChart.setNoDataTextColor(R.color.colorAccent)
+        }
+    }
+
+    // Generate due chart data
+    private fun generateDuesDataLine(dues: ArrayList<Due>): LineData? {
+        val values: ArrayList<Entry> = ArrayList()
+        for (i in dues.indices) {
+            values.add(Entry(i.toFloat(), dues[i].value.toFloat()))
+        }
+        val lineDataSet = LineDataSet(values, getString(R.string.dues))
+        lineDataSet.lineWidth = 2.5f
+        lineDataSet.circleRadius = 4.5f
+        lineDataSet.highLightColor = Color.rgb(0, 0, 0)
+        lineDataSet.color = R.color.red
+        lineDataSet.setCircleColor(R.color.red)
+        lineDataSet.setDrawValues(true)
+        return LineData(lineDataSet)
+    }
+
+    // Add revenue chart
+    private fun setRevenuesChart(revenues: ArrayList<Revenue>) {
+        if (revenues.size > 0) {
+            binding.revenuesLineChart.data = generateRevenuesDataLine(revenues)
+            binding.revenuesLineChart.description = Description().apply { text = "" }
+        } else {
+            binding.revenuesLineChart.setNoDataText(getString(R.string.there_is_no_data_available))
+            binding.revenuesLineChart.setNoDataTextColor(R.color.colorAccent)
+        }
+    }
+
+    // Generate revenue chart data
+    private fun generateRevenuesDataLine(revenues: ArrayList<Revenue>): LineData? {
+        val values: ArrayList<Entry> = ArrayList()
+        for (i in revenues.indices) {
+            values.add(Entry(i.toFloat(), revenues[i].value.toFloat()))
+        }
+        val lineDataSet = LineDataSet(values, getString(R.string.revenues))
+        lineDataSet.lineWidth = 2.5f
+        lineDataSet.circleRadius = 4.5f
+        lineDataSet.highLightColor = Color.rgb(0, 0, 0)
+        lineDataSet.color = R.color.green
+        lineDataSet.setCircleColor(R.color.green)
+        lineDataSet.setDrawValues(true)
+        return LineData(lineDataSet)
     }
 }
